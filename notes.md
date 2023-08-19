@@ -575,3 +575,223 @@ Opinião do instrutor
 
 Uma vez que alteramos a política de acesso, somente os computadores dos gerentes de vendas e finanças continuarão acessando a página de login presente no servidor. Os demais usuários não terão permissão de acesso e com isso a página de login não será mostrada.
 lista_acesso
+
+#### 19/08/2023
+
+@03-Provedor de serviço
+
+@@01
+Conectando ao provedor de serviços
+
+Conseguimos obter um grande avanço até aqui, dividindo a rede interna em redes menores por meio das VLANs, e conseguiremos trabalhar de uma forma mais eficiente com os "endereços IP" usando as sub-redes.
+Com as Listas de Acessos, definimos que somente o computador do gerente de vendas e o do gerente de finanças, tivessem acesso à página de login que está no servidor. Mas sabemos que sem o uso da internet, fica difícil para uma empresa desenvolver muitos negócios.
+
+Então, a nossa tarefa é realizar a contratação de um serviço de provedor, e ver em detalhes como é feita essa conexão na rede do provedor de serviços para a nossa empresa.
+
+Observe a imagem a seguir:
+
+Diagrama da contratacao do servico de provedor de internet
+
+Suponhamos que fizemos a contratação de serviços de um provedor. O funcionário do provedor vai pegar um ponto de acesso que esteja na rua, por exemplo, que seja da rede dele, e vai trazer um cabo para o nosso estabelecimento.
+
+A conexão que é feita com o nosso estabelecimento é chamada de Ponto de Demarcação! Podemos citar um Wall Jack Ethernet como exemplo de ponto de acesso, em que o provedor de serviços realiza a conexão de fora para dentro do estabelecimento.
+
+Os roteadores mais antigos tinham um modem externo, que se chamava CSU/DSU. Do ponto do demarcador, conectaríamos ao wall jack. Por fim, o wall jack se conectaria ao roteador que está em nossa empresa.
+
+Antigamente, a conexão era feita do CSU/DSU para o roteador, por meio de um cabo chamado de V.35, que era um cabo serial. Atualmente, a conexão usando o cabo serial é pouco utilizada. O CSU/DSU já vem embutido das placas de rede atualmente, então, não precisaremos fazer todo esse caminho. Podemos encurtá-lo, fazendo a conexão do wall jack direto para a porta Rj45 que está no roteador.
+
+Nas representações de diagramas de redes, é comum realizar a conexão de uma rede externa (que pertence a um outro servidor) com um cabo serial, para justamente saber qual é o ponto demarcador da nossa rede, para a rede de uma outra empresa.
+
+Vamos utilizar no nosso projeto, esse cabo serial. Esta é a forma mais comum para fazer esse tipo de representação quando estamos conectando redes de diferentes empresas.
+
+Adicionaremos um roteador, que será representado como o roteador do provedor de serviços. Clicando nesse roteador, teremos a visão física:
+
+Visao fisica do dispositivo roteador do provedor
+
+Precisaremos instalar essa placa serial, mas antes, teremos que desligar esse roteador, clicando no botão:
+
+Desligar o roteador
+
+Depois, clicando na opção "WIC-1T", arrastaremos para o primeiro espaço da placa:
+
+Arrastar WIC1T
+
+Feito isso, vamos instalar a placa serial no roteador, e depois podemos ligá-lo novamente.
+
+Realizaremos o mesmo processo com o roteador que está em nossa empresa. Mas antes de desligá-lo, vamos salvar as configurações que estão na memória volátil.
+
+Para salvar a memória não-volátil, faremos o seguinte:
+
+>enable
+#wrCOPIAR CÓDIGO
+O comando #wr vem de write, e utilizamos para salvar a configuração. Uma vez salva toda a configuração na memória não-volátil, vamos clicar no roteador, na aba "Physical", desligar o roteador como fizemos no anterior, e arrastar novamente a placa serial WIC-1T. Agora ligamos o roteador novamente, e realizamos a conexão entre esses dois roteadores usando o cabo serial.
+
+De acordo com a imagem abaixo, clicaremos no símbolo de um raio (Connections) que está à esquerda, e depois, no símbolo de um raio vermelho com um relógio, que está à direita.
+
+Conectando ao provedor de servicos
+
+Esse segundo símbolo indica a taxa de transmissão que o provedor de serviços vai estar fornecendo para nós.
+
+Para especificar quem fornecerá essa taxa será o provedor, clicaremos primeiro no roteador do provedor, e escolhemos a rota Serial0/1/0 e conectamos na porta Serial0/1/0 do roteador da nossa empresa.
+
+Roteadores conectados
+
+Agora, precisamos configurar as interfaces dessa conexão. Lembrando que na internet, não podemos utilizar endereços IPs privados. Esses endereços são aqueles que vimos nas outras aulas, que começam com 10, ou com 172.16 a 172.31, ou até mesmo que começavam por 192.168. Esses endereços só podem ser usados para a comunicação interna.
+
+A partir do momento que saímos da rede interna e vamos para a internet, precisaremos de um endereço IP público. Esses endereços são fornecidos pelo provedor de serviços, para que os usuários que estão em nossa rede interna possam ter os seus endereços IPs traduzido para esse IP público (NAT).
+
+A primeira etapa é colocar as interfaces dos roteadores constando como endereços IP públicos. Clicando no roteador do provedor, na aba "CLI", colocaremos os seguintes comandos:
+
+>enable
+#configure terminal
+#interface serial 0/1/0
+#no shutdownCOPIAR CÓDIGO
+Depois que entramos no modo de configuração, acessaremos a interface serial e depois, habilitaremos a porta com o comando #no shutdown. Se observarmos no diagrama, veremos que as portas estarão verdes.
+
+Ao criarmos as sub-redes internas da Multillidae, fizemos a melhor eficiência do uso dos endereços IPs. O provedor de serviços será diferente, pois os IPs públicos foram comprados dos órgãos governamentais, por isso, eles devem ser usados da melhor maneira possível. Mas qual é a melhor maneira possível dele atribuir os endereços IPs? Necessitaremos de um endereço IP público para a interface do roteador do provedor, e um outro endereço público para a interface do roteador da empresa.
+
+Vamos verificar qual seria a sub-rede que traria a melhor eficiência para se trabalhar com somente dois endereços.
+
+@@02
+IP privado x IP público
+PRÓXIMA ATIVIDADE
+
+Onde os IP privados são utilizados em uma rede?
+
+Os IP privados são usados somente para comunicação em uma rede interna
+ 
+Os endereços IP privados são usados somente para comunicação em uma rede interna, diferentemente dos endereços IP públicos que são usados para comunicação na internet
+Alternativa correta
+Os IP privados são usados somente nas redes dos provedores de serviços
+ 
+Alternativa correta
+Os IP privados são usados somente para comunicação na internet
+ 
+Alternativa correta
+Os IP privados são usados somente na conexão entre nosso roteador e o modem do provedor de serviços
+
+@@03
+Conexão demarcador
+PRÓXIMA ATIVIDADE
+
+Como eram realizadas antigamente as conexões dos pontos demarcadores com os roteadores internos de empresas?
+
+ internos de empresas?
+Alternativa correta
+A conexão era realizada entre o ponto demarcador com um equipamento chamado de CSU/DSU com um cabo serial e novamente ocorria a conexão entre o CSU/DSU e o roteador empresarial com um cabo serial
+ 
+Alternativa correta
+A conexão era realizada com um equipamento chamado de CSU/DSU, que era capaz de converter os sinais do provedor de serviços para uma transmissão serial, então ocorria a necessidade do uso de um cabo serial para conexão com a placa do roteador.
+Alternativa correta
+A conexão era realizada entre o ponto demarcador com um equipamento chamado de CSU/DSU que simplesmente atuava como um Hub, repetindo o sinal recebido por todas as portas e ocorria a conexão de um cabo serial entre o roteador empresarial o CSU/DSU
+ 
+A conexão desse ponto demarcador era realizada com um equipamento chamado de CSU/DSU (Channel Service Unit/Data Service Unit). Tal equipamento era responsável por converter o sinal fornecido pelo provedor de serviços para uma transmissão serial, atuando como um modem. Dessa forma, utilizava-se um cabo serial, sendo o mais comum um cabo chamado de V.35 para conexão com uma placa serial presente no roteador.
+Hoje em dia, essa conexão serial foi substituída pela conexão com o cabo de rede que estamos acostumados uma vez que o equipamento CSU/DSU já está presente nas placas de redes dos roteadores empresariais mais modernos, não sendo necessário mais o uso dos cabos seriais. Embora, os cabos seriais hoje em dia não sejam mais utilizados, sua representação é comum em diagramas de rede como referência a conexão a rede de uma outra empresa.
+
+@@04
+Configurando sub-redes
+
+Como vimos anteriormente, o provedor de serviços tentará alocar os endereços IPs da forma mais eficiente possível, afinal, ele pagou por esses endereços IPs públicos para os órgãos governamentais.
+Em nosso cenário, iremos precisar de um endereço IP público para o roteador do provedor de serviços e também de um IP público para a interface que irá para o roteador da nossa empresa. Vamos voltar ao nosso diagrama do café para ver qual seria a melhor eficiência para entregar esses 2 endereços IPs para os clientes.
+
+Diagrama do café
+
+Os dois grãos de café serão representados pelos dois endereços IPs que iremos precisar. Sabemos que até a prateleira com quatro grãos de café, não podemos colocar nenhum post-it, senão teremos prejuízo. Por isso, usaremos a prateleira com dois grãos. As prateleiras que não tem post-it, colocaremos o bit 0, nas com post-it, colocaremos o bit 1.
+
+Mascara de rede sem nenhuma informacao
+
+Temos a máscara de rede sem nenhuma informação e nós precisamos reservar uma parte da máscara para alocar dois endereços IPs.
+
+Começaremos a análise da esquerda para a direita, e precisamos colocar dois bits 0, pois os 0 na máscara de rede, é referente aos hosts.
+
+Zeros representando hosts
+
+Uma vez que já reservamos esses bits 0 em nossa máscara de rede, o restante pode ser deixado para a parte da rede mesmo. Com isso, descobrimos a melhor eficiência para nós.
+
+Então se lembrarmos da transformação dos números binários para os decimais, teremos a sequência de 8 bits 1.
+
+Sequencia de 8 bits de 1
+
+Faremos algumas contas para calcular o último intervalo. Onde tiver o bit 1, consideramos na soma. Na última posição do intervalo, (da direita para a esquerda), temos a posição com 128 grãos de café. Em seguida, temos a posição de 64 grãos. Somando o valor dessas duas posições, mais 32 que equivale a 32 grãos, mais 16, mais 8, e por fim, o 4. Nas próximas posições, teremos o bit 0, e não consideraremos na soma.
+
+O valor decimal respectivo à sequencia binária é 252.
+
+Ultima sequencia binaria descoberta
+
+Agora, vamos descobrir qual é o endereço máximo disponível para essa máscara de rede que terá a melhor eficiência para entregar esses dois endereços IP. Como estamos usando base binária, então a conta é 2^, 2 elevado a quantidade de bits 0 (hosts). Temos que levar em conta que não podemos atribuir para nenhuma máquina o endereço IP de rede e de broadcast, por isso, subtraímos o valor por 2.
+
+ Endereços Disponíveis: (2^2) - 2 = 2COPIAR CÓDIGO
+Essa máscara de rede conseguirá alocar exatamente dois endereços IP. Esse tipo de máscara de rede ("255.255.255.252"), acaba sendo muito utilizada para os links de ponto a ponto, pois iremos precisar somente de 2 endereços IPs, e com essa máscara, conseguiremos obter exatamente a atribuição de dois endereços IPs.
+
+Seguiremos os Três Passos para poder verificar qual seria o incremento da sub-rede.
+
+O primeiro passo era Transformar a máscara em binário.
+
+Transformar a mascara em binário
+
+O segundo passo era Verificar onde ocorre a transição da sequência do bit 1 e do bit 0.
+
+ Verificar a transicao da sequencia de bits
+O terceiro passo era transformar a posição do bit 1 em decimal
+Transformar a posicao do bit 1 em decimal
+Agora, pegaremos um endereço IP público de exemplo 150.1.1.0. Para definir as subredes, colocaremos esse endereço na primeira sub-rede. Para o endereço IP da próxima sub-rede, pegamos o intervalo onde teve a transição do bit 1 para o bit 0, e adicionamos o valor respectivo a posição inicial do bit 1. No nosso caso, esse valor é igual a 4! Com isso, o endereço será 150.1.1.4.
+O IP de Broadcast da sub-rede 1 é o endereço da sub-rede 2, menos 1, ou seja, será 150.1.1.3. O IP de Broadcast da sub-rede 2 é o endereço da sub-rede 2, mais 4, e aí nós subtraímos 1. Ficaria 150.1.1.7. Cada sub-rede vai estar totalmente isolada uma da outra.
+Poderíamos alocar para o link, a primeira sub-rede do nosso exemplo. Quais os endereços IP disponíveis dentro dela? Temos somente dois IPs disponíveis: 150.1.1.1 e o 150.1.1.2.
+Vamos clicar no roteador do provedor, na aba "CLI", usaremos os comandos:
+#interface serial 0/1/0
+#ip address 150.1.1.1 255.255.255.252COPIAR CÓDIGO
+Agora, configuraremos o próximo roteador:
+>enable
+#configure terminal
+#interface serial 0/1/0
+#ip address 150.1.1.2 255.255.255.252COPIAR CÓDIGO
+Agora vamos testar a conectividade desse roteador, para o roteador de serviços.
+Voltando para o modo privilegiado com o "Ctrl + Z" colocaremos:
+#ping 150.1.1.1COPIAR CÓDIGO
+Quando temos os pontos de exclamação como resposta, significa que a conectividade foi estabelecida com sucesso. Se tentarmos pingar um endereço de outra sub-rede, não vamos ter sucesso, pois são redes distintas e por padrão, eles não se conversam.
+Desta forma, utilizando sub-redes, conseguiremos trabalhar com endereços IP de forma muito eficiente. Aqui, conseguimos configurar o endereço IP público e atribuído pelo nosso provedor de serviço, o próximo passo será traduzir os endereços privados dos computadores dos funcionários, para o endereço publico. Isso será feito por meio do NAT.
+
+@@05
+Provedor de serviços
+PRÓXIMA ATIVIDADE
+
+O que seria o ponto demarcador?
+
+O ponto demarcador seria uma outra nomenclatura usada para listas de acesso, pois com a lista de acesso estamos demarcando os tráfegos que podem entrar e sair de nossa rede.
+ 
+Alternativa correta
+O ponto demarcador seria uma ferramenta utilizada por provedores de serviços para continuar a instalação de cabos caso ocorra algum interrupção durante o serviço de instalação.
+ 
+Alternativa correta
+O ponto demarcador seria uma limitação entre a rede interna do cliente final e a rede do provedor de serviços, dividindo assim as responsabilidades existentes.
+Alternativa correta
+O ponto demarcador seria uma nomenclatura utilizada para o Switch root de uma rede, pois ele que vai demarcar quais serão as portas bloqueadas no caso da existência de loops.
+ 
+O ponto demarcador seria um ponto instalado nas premissas do cliente o qual divide as responsabilidades na rede entre o provedor de serviços e o cliente final. Caso ocorra algum problema do ponto de demarcação para a rede interna, seria responsabilidade do cliente. Caso ocorra algum problema do ponto de demarcação para a rede externa, seria responsabilidade do provedor de serviços.
+Parabéns, você acertou!
+
+@@06
+Mãos à obra: Conectando ao provedor de serviços
+PRÓXIMA ATIVIDADE
+
+Iremos agora conectar nossa rede com a do provedor de serviços, ganhando assim acesso a internet.
+Arraste para a área de trabalho o roteador modelo 1841. Embora a conexão serial do modem chamado CSU/DSU para o roteador interno não seja mais utilizada nos dias de hoje, essa representação é comum em diagramas para mostrar que estamos nos conectando a uma rede externa, de um outro provedor, empresa, etc. Para isso, nós clicamos nesse novo roteador, vamos até a aba Physical e precisamos desligar esse roteador. Em seguida clicamos na placa de rede serial WIC-1T e arrastamos para o slot vazio do roteador. Por fim devemos, ligar o roteador novamente.
+serial
+
+Devemos inserir essa placa serial no roteador interno, porém antes nós devemos salvar as configurações na memória não volátil do roteador. Clique no roteador e vá até a aba CLI. Digite enable para entrar na parte privilegiada e em seguida digitamos wr
+Agora podemos desligar o roteador e inserir a placa de rede. Clique na aba Physical, desligue o roteador e arraste a placa WIC-1T para um slot disponível e ligue o roteador.
+Na sequência, devemos conectar esses dois roteadores. Clicamos no símbolo do raio e escolhemos a opção Serial DCE (oitava opção da esquerda para a direita). O DCE será o equipamento o qual irá enviar a taxa de transmissão, que virá do provedor de serviços. Clicamos primeiro no roteador do provedor de serviços escolhemos a porta serial que implementamos e na sequência clicamos no roteador interno e escolhemos a porta serial que configuramos. Devemos ter no fim esse cenário:
+provedor_servicos
+
+Devemos agora habilitar as portas dos dois roteadores e configurar os endereços IP. O provedor de serviços pagou pelos endereços IP públicos, então ele vai tentar usar da forma mais eficiente possível. No nosso cenário, precisamos somente de dois endereços IP um para o provedor de serviços e outro para a interface serial do roteador interno.
+
+Clique no roteador do provedor de serviços e vá até a aba CLI. Entre na parte privilegiada digitando enable e na sequência entre na parte de configuração digitando configure terminal
+Entre na interface serial utilizada para conectar ao roteador interno (por exemplo: interface serial 0/1/0) e habilite essa interface colocando no shutdown e insira o endereço IP 150.1.1.1, digitando: ip address 150.1.1.1 255.255.255.252.
+Na sequência, clique no roteador interno digite enable para entrar na parte privilegiada e posteriormente coloque configure terminal para entrar na parte de configuração. Entre em seguida na interface serial (por exemplo: interface serial 0/1/0) e coloque o endereço IP 150.1.1.2, digitando: ip address 150.1.1.2 255.255.255.252.
+Teste a conectividade com o roteador do provedor de serviços, digitando: do ping 150.1.1.1
+Qual o resultado?
+
+Opinião do instrutor
+
+Uma vez que os endereços IP da interface serial do roteador interno e a interface serial do roteador do provedor de serviços estão dentro da mesma sub-rede a comunicação é estabelecida com sucesso.
+ping_provedor
