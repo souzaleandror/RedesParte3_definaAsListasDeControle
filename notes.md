@@ -795,3 +795,173 @@ Opinião do instrutor
 
 Uma vez que os endereços IP da interface serial do roteador interno e a interface serial do roteador do provedor de serviços estão dentro da mesma sub-rede a comunicação é estabelecida com sucesso.
 ping_provedor
+
+#### 20/08/2023
+
+@04-Network Address Translation (NAT)
+
+@@01
+Configurando o NAT
+
+Até aqui, conseguimos configurar os endereços IPs entre o roteador do provedor de serviços e o roteador da nossa empresa Multillidae. Nesta aula, realizaremos a tradução dos endereços IPs privados para o endereço público que foi alocado na interface serial do roteador da Multillidae.
+Com o NAT, faremos essas traduções de IPs privados para IPs públicos. Para realizarmos essas configurações, clicaremos no roteador da empresa, na aba "CLI", e executaremos os comandos a seguir. Será necessário criar uma lista de acessos. No final da criação da lista, temos que especificar se esta será uma lista extended ou uma lista standard. No caso, só estamos preocupados em realizar a tradução dos endereços IPs da origem, e não o que eles irão acessar. Por causa disso, usaremos a opção standard:
+
+>enable
+#configure terminal
+#ip access-list standard NATCOPIAR CÓDIGO
+Pronto! Criamos a nossa lista de acessos. Temos que indicar os endereços IPs que queremos realizar essa tradução.
+
+O endereço 172.16.0.0 foi alocado para os funcionários do setor de Vendas, e o endereço 172.16.2.128 foi alocado para os funcionários de Finanças.
+
+Então, para fazer a permissão, usaremos também o Wildcard bits. Lembrando que 0 faz com que a parte do endereço seja exatamente igual, o 255 nos permite colocar qualquer valor. Tanto a rede de Vendas, como a rede de Finanças, as duas inicializam com 172 e o segundo intervalo é 16.
+
+#permit 172.16.0.0COPIAR CÓDIGO
+Isso quer dizer que esses dois valores precisam ser exatamente iguais. Entretanto os dois últimos intervalos podem ser qualquer valor. Por isso, a máscara da subrede ficará assim:
+
+#permit 172.16.0.0 0.0.255.255COPIAR CÓDIGO
+Em seguida, configuraremos nas interfaces do roteador, a interface interna, onde ficarão os IPs privados, e a interface externa, onde estará o IP público fornecido pelo provedor.
+
+No roteador, na aba "CLI", acessaremos primeiro a interface 0.1, que é a subinterface do setor de vendas:
+
+#exit
+#interface fastEthernet 0/0.1COPIAR CÓDIGO
+Diremos que essa subinterface é interna:
+
+#exit
+#interface fastEthernet 0/0.1
+#ip nat inside
+#exitCOPIAR CÓDIGO
+Depois dessa configuração entraremos na interface 0.2, que é a interface do setor de finanças. Especificaremos também que essa interface está conectada com a parte interna da nossa rede.
+
+#interface fastEthernet 0/0.2
+#ip nat inside
+#exitCOPIAR CÓDIGO
+Entraremos na interface serial que é a externa, e atribuiremos a característica de outside:
+
+#interface serial 0/1/0
+#ip nat outside
+#exitCOPIAR CÓDIGO
+Precisaremos vincular a lista de acessos que permite os endereços que começam com 172.16., sejam traduzidos para o endereço IP público 150.1.1.2. E para fazer essa configuração, faremos:
+
+#ip nat inside source list NAT interface serial 0/1/0COPIAR CÓDIGO
+Com esse comando, diremos que será traduzido os endereços IPs que estão na rede (inside), e especificamos quais são esses endereços IPs que estão na lista NAT para a interface serial 0/1/0.
+
+Entretanto, seremos um pouco cuidadoso, porque só temos um endereço IP público, mas temos vários usuários na rede que podem estar acessando a internet ou qualquer outro recurso externo simultaneamente. Para especificar que a configuração da tradução tem que englobar todos esses endereços IPs internos de forma simultânea, colocaremos o overload:
+
+#ip nat inside source list NAT interface serial 0/1/0 overloadCOPIAR CÓDIGO
+Com o overload, é dito que todos os usuários podem estar usando simultaneamente o endereço IP público 150.1.1.2. Depois disso, usamos a tecla "Enter" e teoricamente já criamos a lista de acessos com os endereços IPs que devem ser traduzidos. Nós especificamos as interfaces internas e externas, e associamos a nossa lista com esses IPs privados, para ela ser traduzida para a interface serial 0/1/0, que irá conter o endereço público, e também especificamos a forma de tradução overload, dizendo que pode ocorrer mais de um usuário estar usando um recurso da internet ao mesmo tempo.
+
+Veremos se, de fato, a tradução está sendo feita no roteador do provedor, e se ele está traduzindo os pacotinhos que chegam.
+
+Testaremos primeiro a conectividade. Clicando no computador do gerente de finanças, em "Command Prompt", usaremos o comando ping:
+
+> ping 150.1.1.1COPIAR CÓDIGO
+Como você pode ver, a conexão está acontecendo normalmente.
+
+Testaremos agora a tradução. Mudaremos do modo Realtime para o Simulation, e realizaremos o Ping novamente no computador do gerente de finanças.
+
+>ping 150.1.1.1COPIAR CÓDIGO
+Clicando em "Capture / Forward", veremos que o pacotinho vai ser transferido até chegar ao roteador. Do roteador, deve acontecer a tradução do IP privado. Observe a imagem:
+
+Traducao do endereco Ip privado para o publico
+
+O IP é o 172.16.2.131 que será traduzido para 150.1.1.2.
+
+Endereco IP privado ja traduzido para publico
+
+Repare que agora o IP de origem é 150.1.1.2. Isso significa que quando esse pacotinho passou pelo roteador, houve a tradução!
+
+Tarefa executada com sucesso!
+
+@@02
+Funcionalidade do NAT
+PRÓXIMA ATIVIDADE
+
+Qual seria a funcionalidade do NAT?
+
+O NAT seria um outro nome utilizado para Vlan nativa, indicando todo o tráfego o qual nenhuma Vlan for especificada.
+ 
+Alternativa correta
+O NAT seria a forma utilizada para realizar roteamento em Swithes.
+ 
+Alternativa correta
+O NAT seria a forma utilizada para transformar uma rede Classful em Classless.
+ 
+Alternativa correta
+O NAT seria a forma utilizada para traduzir endereços IP privados para públicos.
+O NAT (Network Address Translation) é usado para realizar a tradução de endereços IP privados, que só podem ser usados em uma rede interna para endereços IP públicos que podem ser usados para acessar a internet.
+
+@@03
+Comunicação e o NAT
+PRÓXIMA ATIVIDADE
+
+Nós trabalhamos em uma empresa e foi solicitado que configurássemos essa rede empresarial para que fosse possível acessar o servidor da internet. No fim de semana, precisamos acessar esse servidor de uma localidade externa, então acessamos o browser e colocamos o endereço IP 192.168.0.20 que seria o endereço IP do servidor que está interno na rede da empresa. Porém o resultado não foi satisfatório, qual seria uma das possíveis causas?
+
+Uma das possíveis causas seria que o endereço IP 192.168.0.20 é um endereço IP de rede quando atuamos em rede classful e dessa forma, não poderá ser atribuído para nenhuma máquina
+ 
+Alternativa correta
+Uma das possíveis causas seria que o endereço IP 192.168.0.20 em redes classful é um endereço de Broadcast.
+ 
+Alternativa correta
+Trata-se de um endereço IP privado. Uma vez que o NAT realiza traduções de endereços IP privados para públicos, usuários da internet só conseguirão visualizar o endereço IP público por padrão.
+Alternativa correta
+Uma das possíveis causas seria que em redes classful esse endereço IP é de uso reservado da classe D e com isso não conseguiremos acessar.
+ 
+O endereço IP 192.168.0.20 é privado. Uma vez que estamos em uma rede externa nós só conseguimos visualizar o endereço IP público da rede da empresa e não conseguimos visualizar os endereços IP privados que estão configurados internamente, isso porque ocorre a tradução de endereços IP privados para públicos através do NAT.
+Uma possível solução seria utilizar uma rede virtual privada, permitindo autenticação de usuários para acessar a rede interna e consequentemente o servidor. Tal tecnologia é conhecida como Virtual Private Network (VPN), para saber maiores detalhes: https://pt.wikipedia.org/wiki/Virtual_private_network
+
+https://pt.wikipedia.org/wiki/Virtual_private_network
+
+@@04
+Standard x Extended
+PRÓXIMA ATIVIDADE
+
+Diferentemente da configuração da lista de acesso que fizemos para o servidor interno que usamos o tipo extended, utilizamos agora a lista de acesso do tipo standard. Porque fizemos essa alteração?
+
+Na configuração do NAT há uma preocupação da origem e dos endereços de destino os quais os dispositivos vão acessar, dessa forma, a escolha do tipo standard ocorreu por conta que esse tipo faz uma análise dos endereços de origem e destino
+ 
+O tipo standard faz análise somente dos endereços de origem e não dos endereços de origem e destino como especificado na resposta
+Alternativa correta
+Na configuração do NAT há uma preocupação somente com o destino os quais os endereços de origem vão acessar, dessa forma, a escolha do tipo standard ocorreu por conta que esse tipo faz uma análise dos endereços de destino
+ 
+O tipo standard faz análise somente dos endereços de origem e não dos endereços de destino como especificado na resposta
+Alternativa correta
+Na configuração do NAT não há preocupação com endereços de origem e destino e dessa forma, a utilização do tipo standard é utilizada para informar que nenhum tipo de endereço, nem de origem e nem de destino deverá ser analisado
+ 
+O tipo standard faz análise dos endereços de origem, diferentemente da resposta que diz que não há análise de nenhum tipo de endereço
+Alternativa correta
+Na configuração do NAT não há uma preocupação de qual destino os computadores irão acessar, por isso estamos só preocupados com a origem dos endereços e o tipo standard analisa somente a origem
+ 
+O tipo standard analisa a origem dos endereços e nesse caso estamos só preocupados com a origem e não com o possível destino que esses endereços planejam acessar
+
+@@05
+Mãos à obra: Configurando NAT
+PRÓXIMA ATIVIDADE
+
+Dentro da rede interna estamos usando endereços IP privados, os endereços IP privados são usadas somente para comunicação na rede interna, não podendo ser utilizados para comunicação na internet. Dessa forma, devemos traduzir os endereços IP privados para o endereço IP público (150.1.1.2), essa tradução entre endereços IP privados para endereços IP públicos é chamado de Network Address Translation (NAT). Devemos realizar isso no nosso projeto:
+Clique no roteador interno da Mutillidae e vá até a aba CLI
+Entre na parte privilegiada digitando enable e posteriormente entre na parte de configuração digitando configure terminal
+O primeiro passo será criar uma lista de acesso para que possamos informar os endereços IP privados que queremos traduzir para o endereço IP público. Digitamos ip access-list standard NAT
+Na sequência, digitamos os endereços IP permitidos na tradução, digitamos permit 172.16.0.0 0.0.255.255 Dessa forma, estamos informando que todos os endereços IP devem começar por 172.16, os demais intervalos podem ter qualquer valor, porque o WildCard bits está 255.
+Uma vez que criamos a lista de acesso dos endereços IP privados para serem traduzidos, devemos configurar as interfaces que serão da parte interna e a interface que será da parte externa.
+Digite exit para sair da parte de configuração da lista de acesso. Entre na sub-interface do setor de vendas (por exemplo: interface FastEthernet 0/0.1) e especificamos como sendo a parte interna, digitamos: ip nat inside.
+Na sequência, devemos sair dessa sub-interface digitando exit e na sequência entramos na sub-interface da Vlan de finanças (por exemplo: interface FastEthernet 0/0.2) e especificamos como sendo a parte interna, digitamos: ip nat inside.
+Saímos dessa interface digitando exit e em seguida precisamos entrar na interface serial (por exemplo: interface serial 0/1/0) e especificamos como sendo a parte externa, digitamos: ip nat outside
+Por fim devemos associar a lista que criamos para ser traduzida para esse endereço IP público, digitamos: ip nat inside source list NAT interface Serial0/1/0
+Clique em um dos computadores e posteriormente vá até aba Command Prompt e digite ping 150.1.1.1 que seria o endereço IP do roteador do provedor de serviços. Em seguida, volte ao roteador e volte a porte privilegiada digitando CTRL+Z e digitando em seguinda show ip nat translations. Qual o resultado?
+
+Uma vez que realizamos a configuração do NAT, a tradução dos endereços IP privados para o endereço IP público 150.1.1.2 é estabelecida com sucesso e dessa forma, nossos usuários irão poder acessar a internet.
+
+@@06
+Conclusão
+
+Chegamos ao final da terceira parte do curso, e vimos a questão das configurações de políticas de acesso em nosso roteador.
+Configuramos as políticas de acesso para permitir que somente o computador do gerente de Finanças e o computador do gerente de Vendas tivessem acesso aos recursos do servidor, e negamos os computadores dos funcionários de vendas e finanças de acessarem ao servidor.
+
+Vimos a questão das políticas de acesso, na qual a análise é feita sequencialmente, conforme digitamos essas políticas. Se houver algum pacote e não houver nenhum tratamento para esse tráfego, ele será descartado e não passará.
+
+No final, criamos uma política para configurar todas as outras comunicações para continuarem a ser estabelecidas, por meio do permit ip any any.
+
+Depois, usando o NAT, conseguimos fazer a tradução dos endereços IPs privados, que foram alocados nos computadores dos funcionários da empresa, para endereços IPs públicos. Conseguimos também, estabelecer a comunicação com esse roteador do provedor de serviços.
+
+Esperamos você na quarta parte do Curso de Redes!
